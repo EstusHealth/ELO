@@ -22,6 +22,19 @@ export function makeId() {
 // Default "becoming" target sits one growth step above the starting rating.
 export const DEFAULT_TARGET = BASE_RATING + 100
 
+// The weekly outcome a metric can be scored with. Each week, a metric is
+// either left unscored or set to exactly one of these tangible outcomes.
+export const SCORES = [
+  { key: 'missed', label: 'Did not complete', value: -15 },
+  { key: 'progressed', label: 'Progressed', value: 5 },
+  { key: 'strong', label: 'Progressed strongly', value: 10 },
+]
+
+// Look up the outcome that matches a stored delta, if any.
+export function scoreForValue(value) {
+  return SCORES.find((s) => s.value === value) || null
+}
+
 export function seededState() {
   return {
     metrics: DEFAULT_METRIC_NAMES.map((name, index) => ({

@@ -11,14 +11,16 @@ piece of data lives in your browser's `localStorage`.
 ## How it works
 
 - Each metric has a rating that starts at 1000.
-- The app is organized by ISO weeks. For any selected week you adjust a metric
-  with the `+` and `-` buttons, each press changing that week's adjustment by
-  exactly 1.
-- A metric's current rating is `1000 + the sum of every week's net adjustment`
+- The app is organized by ISO weeks. For any selected week you score each metric
+  with one of three tangible outcomes:
+  - **Did not complete**: -15
+  - **Progressed**: +5
+  - **Progressed strongly**: +10
+  - Choosing the outcome that is already selected clears it back to unscored.
+- A metric's current rating is `1000 + the sum of every week's scored outcome`
   for that metric.
-- Earlier weeks, including the previous week, stay editable in the same
-  1-point increments. You cannot navigate into the future past the current
-  week.
+- Earlier weeks, including the previous week, stay editable. You cannot navigate
+  into the future past the current week.
 
 Default metrics seeded on first load: Fitness, Sleep, Meal Prep, Budgeting,
 Intentional Relaxation. You can add, rename, delete, and reorder metrics from

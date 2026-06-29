@@ -9,6 +9,7 @@ import {
   makeId,
   BASE_RATING,
   DEFAULT_TARGET,
+  SCORES,
 } from './storage.js'
 import {
   currentWeekString,
@@ -62,14 +63,14 @@ export default function App() {
     [state.metrics],
   )
 
-  // Adjust the selected week's delta for a metric by +1 or -1.
-  function nudge(metricId, amount) {
+  // Score the selected week's outcome for a metric. Choosing the outcome that
+  // is already selected clears it back to unscored.
+  function setScore(metricId, value) {
     setState((prev) => {
       const weeks = { ...prev.weeks }
       const entry = { ...(weeks[week] || {}) }
-      const next = (entry[metricId] || 0) + amount
-      if (next === 0) delete entry[metricId]
-      else entry[metricId] = next
+      if (entry[metricId] === value) delete entry[metricId]
+      else entry[metricId] = value
       if (Object.keys(entry).length === 0) delete weeks[week]
       else weeks[week] = entry
       return { ...prev, weeks }
@@ -437,29 +438,28 @@ export default function App() {
               <div className="rating" aria-label={`Current rating ${rating}`}>
                 {rating}
               </div>
-              <div className="adjuster">
-                <button
-                  type="button"
-                  className="step"
-                  onClick={() => nudge(m.id, -1)}
-                  aria-label={`Decrease ${m.name} for this week`}
-                >
-                  &minus;
-                </button>
-                <span
-                  className={`delta delta-${trend}`}
-                  aria-label={`This week's adjustment ${delta > 0 ? '+' : ''}${delta}`}
-                >
-                  {delta > 0 ? `+${delta}` : delta}
-                </span>
-                <button
-                  type="button"
-                  className="step"
-                  onClick={() => nudge(m.id, 1)}
-                  aria-label={`Increase ${m.name} for this week`}
-                >
-                  +
-                </button>
+              <div
+                className="score-group"
+                role="group"
+                aria-label={`This week's outcome for ${m.name}`}
+              >
+                {SCORES.map((s) => {
+                  const selected = delta === s.value
+                  const sign = s.value > 0 ? `+${s.value}` : `${s.value}`
+                  return (
+                    <button
+                      key={s.key}
+                      type="button"
+                      className={`score score-${s.key}${selected ? ' on' : ''}`}
+                      aria-pressed={selected}
+                      onClick={() => setScore(m.id, s.value)}
+                      aria-label={`${s.label} for ${m.name}, ${sign} points`}
+                    >
+                      <span className="score-label">{s.label}</span>
+                      <span className="score-value">{sign}</span>
+                    </button>
+                  )
+                })}
               </div>
 
               <div className="becoming">

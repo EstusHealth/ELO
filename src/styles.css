@@ -357,43 +357,59 @@ button:disabled {
   letter-spacing: -0.02em;
 }
 
-.adjuster {
+.score-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.score {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-}
-
-.step {
-  width: 44px;
-  height: 44px;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--surface-2);
   color: var(--text);
-  font-size: 1.3rem;
-  line-height: 1;
+  text-align: left;
 }
 
-.step:hover {
+.score:hover {
   border-color: var(--accent);
 }
 
-.delta {
-  font-size: 1.15rem;
+.score-label {
   font-weight: 600;
-  min-width: 48px;
-  text-align: center;
+  font-size: 0.9rem;
 }
 
-.delta-up {
-  color: var(--up);
-}
-.delta-down {
-  color: var(--down);
-}
-.delta-flat {
+.score-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
   color: var(--text-dim);
+}
+
+/* Selected outcome states */
+.score.on {
+  color: #fff;
+}
+
+.score-missed.on {
+  background: var(--down);
+  border-color: var(--down);
+}
+
+.score-progressed.on,
+.score-strong.on {
+  background: var(--up);
+  border-color: var(--up);
+}
+
+.score.on .score-value {
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* Becoming progress (who you were vs who you are becoming) */
