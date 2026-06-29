@@ -19,15 +19,24 @@ export function makeId() {
   return 'm-' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36)
 }
 
+// Default "becoming" target sits one growth step above the starting rating.
+export const DEFAULT_TARGET = BASE_RATING + 100
+
 export function seededState() {
   return {
     metrics: DEFAULT_METRIC_NAMES.map((name, index) => ({
       id: makeId(),
       name,
       order: index,
+      // "Who you were before": the rating you are growing away from.
+      baseline: BASE_RATING,
+      // "Who you are becoming": the rating you are growing toward.
+      target: DEFAULT_TARGET,
     })),
     weeks: {},
-    settings: { theme: 'system' },
+    // checkins maps an ISO week string to true once that week is marked done.
+    checkins: {},
+    settings: { theme: 'system', name: '' },
   }
 }
 
@@ -47,6 +56,8 @@ function normalize(parsed) {
         id: m.id,
         name: m.name,
         order: Number.isFinite(m.order) ? m.order : index,
+        baseline: Number.isFinite(m.baseline) ? Math.trunc(m.baseline) : BASE_RATING,
+        target: Number.isFinite(m.target) ? Math.trunc(m.target) : DEFAULT_TARGET,
       }))
     if (metrics.length === 0) metrics = fallback.metrics
   }
@@ -64,13 +75,22 @@ function normalize(parsed) {
     }
   }
 
-  const theme =
-    parsed.settings &&
-    ['light', 'dark', 'system'].includes(parsed.settings.theme)
-      ? parsed.settings.theme
-      : 'system'
+  const checkins = {}
+  if (parsed.checkins && typeof parsed.checkins === 'object') {
+    for (const [weekKey, value] of Object.entries(parsed.checkins)) {
+      if (value) checkins[weekKey] = true
+    }
+  }
 
-  return { metrics, weeks, settings: { theme } }
+  const settingsIn = parsed.settings && typeof parsed.settings === 'object'
+    ? parsed.settings
+    : {}
+  const theme = ['light', 'dark', 'system'].includes(settingsIn.theme)
+    ? settingsIn.theme
+    : 'system'
+  const name = typeof settingsIn.name === 'string' ? settingsIn.name : ''
+
+  return { metrics, weeks, checkins, settings: { theme, name } }
 }
 
 export function loadState() {
@@ -109,4 +129,14 @@ export function ratingFor(state, metricId) {
     if (Number.isFinite(delta)) total += delta
   }
   return total
+}
+
+// How far a metric has travelled from its baseline ("who you were") toward its
+// target ("who you are becoming"). Returns a fraction clamped to 0..1, or null
+// when the target is not above the baseline so a bar would be meaningless.
+export function progressFor(metric, rating) {
+  const span = metric.target - metric.baseline
+  if (!Number.isFinite(span) || span <= 0) return null
+  const fraction = (rating - metric.baseline) / span
+  return Math.max(0, Math.min(1, fraction))
 }

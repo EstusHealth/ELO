@@ -5,7 +5,10 @@ import {
   clearState,
   seededState,
   ratingFor,
+  progressFor,
   makeId,
+  BASE_RATING,
+  DEFAULT_TARGET,
 } from './storage.js'
 import {
   currentWeekString,
@@ -35,6 +38,9 @@ export default function App() {
 
   const thisWeek = currentWeekString()
   const atCurrentWeek = compareWeeks(week, thisWeek) >= 0
+  const displayName = state.settings.name.trim()
+  const checkedIn = !!state.checkins[week]
+  const completedCount = Object.keys(state.checkins).length
 
   // Persist on every change.
   useEffect(() => {
@@ -74,6 +80,33 @@ export default function App() {
     setState((prev) => ({ ...prev, settings: { ...prev.settings, theme } }))
   }
 
+  function setName(name) {
+    setState((prev) => ({ ...prev, settings: { ...prev.settings, name } }))
+  }
+
+  // Update a numeric metric field (baseline or target). Empty input is
+  // tolerated while typing and coerced to a sensible number.
+  function setMetricNumber(id, field, raw) {
+    const value = raw === '' ? 0 : Math.trunc(Number(raw))
+    if (!Number.isFinite(value)) return
+    setState((prev) => ({
+      ...prev,
+      metrics: prev.metrics.map((m) =>
+        m.id === id ? { ...m, [field]: value } : m,
+      ),
+    }))
+  }
+
+  // Flip whether the selected week's check-in is marked complete.
+  function toggleCheckin() {
+    setState((prev) => {
+      const checkins = { ...prev.checkins }
+      if (checkins[week]) delete checkins[week]
+      else checkins[week] = true
+      return { ...prev, checkins }
+    })
+  }
+
   function cycleTheme() {
     const order = ['light', 'dark', 'system']
     const i = order.indexOf(state.settings.theme)
@@ -88,7 +121,13 @@ export default function App() {
         ...prev,
         metrics: [
           ...prev.metrics,
-          { id: makeId(), name: 'New metric', order: maxOrder + 1 },
+          {
+            id: makeId(),
+            name: 'New metric',
+            order: maxOrder + 1,
+            baseline: BASE_RATING,
+            target: DEFAULT_TARGET,
+          },
         ],
       }
     })
@@ -188,7 +227,15 @@ export default function App() {
   return (
     <div className="app">
       <header className="header">
-        <h1>Metrics ELO</h1>
+        <div className="title-block">
+          <h1>Metrics ELO</h1>
+          <p className="tagline">
+            {displayName
+              ? `${displayName}'s weekly check-in`
+              : 'Your weekly check-in'}
+            : the person you were vs the person you are becoming.
+          </p>
+        </div>
         <div className="header-actions">
           <button
             type="button"
@@ -232,17 +279,75 @@ export default function App() {
         </button>
       </div>
 
+      <div className="checkin-bar">
+        <button
+          type="button"
+          className={`checkin-toggle${checkedIn ? ' done' : ''}`}
+          onClick={toggleCheckin}
+          aria-pressed={checkedIn}
+          aria-label={
+            checkedIn
+              ? 'Mark this week as not checked in'
+              : 'Mark this week as checked in'
+          }
+        >
+          {checkedIn ? '✓ Checked in for this week' : 'Mark check-in complete'}
+        </button>
+        <span className="checkin-count">
+          {completedCount} {completedCount === 1 ? 'week' : 'weeks'} checked in
+        </span>
+      </div>
+
       {editing && (
-        <section className="editor" aria-label="Edit metrics">
+        <section className="editor" aria-label="Edit metrics and profile">
+          <label className="name-field">
+            <span>Your name (shown on the check-in)</span>
+            <input
+              type="text"
+              value={state.settings.name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Optional"
+              aria-label="Your display name"
+            />
+          </label>
+
+          <p className="editor-hint">
+            Baseline is the rating of who you were before. Target is who you are
+            becoming. Each card shows how far you have travelled between them.
+          </p>
+
           <ul className="editor-list">
             {orderedMetrics.map((m, i) => (
               <li key={m.id} className="editor-row">
                 <input
                   type="text"
+                  className="metric-name-input"
                   value={m.name}
                   onChange={(e) => renameMetric(m.id, e.target.value)}
                   aria-label={`Rename metric ${m.name}`}
                 />
+                <label className="num-field">
+                  <span>Were</span>
+                  <input
+                    type="number"
+                    value={m.baseline}
+                    onChange={(e) =>
+                      setMetricNumber(m.id, 'baseline', e.target.value)
+                    }
+                    aria-label={`Baseline rating for ${m.name}`}
+                  />
+                </label>
+                <label className="num-field">
+                  <span>Becoming</span>
+                  <input
+                    type="number"
+                    value={m.target}
+                    onChange={(e) =>
+                      setMetricNumber(m.id, 'target', e.target.value)
+                    }
+                    aria-label={`Target rating for ${m.name}`}
+                  />
+                </label>
                 <div className="editor-row-actions">
                   <button
                     type="button"
@@ -310,6 +415,8 @@ export default function App() {
           const delta = (state.weeks[week] && state.weeks[week][m.id]) || 0
           const trend =
             delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat'
+          const progress = progressFor(m, rating)
+          const pct = progress === null ? null : Math.round(progress * 100)
           return (
             <article className="card" key={m.id}>
               <div className="card-top">
@@ -353,6 +460,40 @@ export default function App() {
                 >
                   +
                 </button>
+              </div>
+
+              <div className="becoming">
+                <div className="becoming-ends">
+                  <span>Were {m.baseline}</span>
+                  <span>Becoming {m.target}</span>
+                </div>
+                {pct === null ? (
+                  <p className="becoming-note">
+                    Set a target above {m.baseline} to track who you are
+                    becoming.
+                  </p>
+                ) : (
+                  <>
+                    <div
+                      className="becoming-track"
+                      role="progressbar"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={pct}
+                      aria-label={`${m.name} progress from who you were to who you are becoming`}
+                    >
+                      <div
+                        className="becoming-fill"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <p className="becoming-note">
+                      {pct >= 100
+                        ? 'You have reached who you set out to become.'
+                        : `${pct}% of the way to who you are becoming.`}
+                    </p>
+                  </>
+                )}
               </div>
             </article>
           )

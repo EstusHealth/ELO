@@ -93,9 +93,20 @@ body {
   flex-wrap: wrap;
 }
 
+.title-block {
+  min-width: 0;
+}
+
 .header h1 {
   font-size: 1.4rem;
   margin: 0;
+}
+
+.tagline {
+  margin: 4px 0 0;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  max-width: 48ch;
 }
 
 .header-actions {
@@ -171,6 +182,40 @@ button:disabled {
   background: var(--surface-2);
 }
 
+/* Check-in bar */
+.checkin-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: -6px 0 20px;
+}
+
+.checkin-toggle {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 16px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.checkin-toggle:hover {
+  background: var(--surface-2);
+}
+
+.checkin-toggle.done {
+  background: var(--up);
+  border-color: var(--up);
+  color: #fff;
+}
+
+.checkin-count {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
 /* Editor */
 .editor {
   background: var(--surface);
@@ -180,25 +225,67 @@ button:disabled {
   margin-bottom: 20px;
 }
 
+.name-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+.name-field input {
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.editor-hint {
+  margin: 0 0 12px;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
 .editor-list {
   list-style: none;
   margin: 0 0 12px;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .editor-row {
   display: flex;
   gap: 8px;
-  align-items: center;
+  align-items: flex-end;
   flex-wrap: wrap;
 }
 
-.editor-row input[type='text'] {
+.metric-name-input {
   flex: 1 1 160px;
   padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.num-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.num-field input {
+  width: 84px;
+  padding: 6px 8px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--bg);
@@ -306,6 +393,40 @@ button:disabled {
   color: var(--down);
 }
 .delta-flat {
+  color: var(--text-dim);
+}
+
+/* Becoming progress (who you were vs who you are becoming) */
+.becoming {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.becoming-ends {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.becoming-track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.becoming-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.2s ease;
+}
+
+.becoming-note {
+  margin: 6px 0 0;
+  font-size: 0.75rem;
   color: var(--text-dim);
 }
 

@@ -25,15 +25,32 @@ Intentional Relaxation. You can add, rename, delete, and reorder metrics from
 the "Edit metrics" panel. Deleting a metric also removes its data from every
 week.
 
+## Weekly check-in: who you were vs who you are becoming
+
+The app frames each week as a check-in that compares the person you were before
+with the person you are becoming.
+
+- **Your name** is an optional display name shown on the check-in heading. It is
+  stored locally and never sent anywhere.
+- Each metric has a **baseline** ("who you were before") and a **target** ("who
+  you are becoming"). Edit both in the "Edit metrics" panel. Each card shows a
+  progress bar marking how far the current rating has travelled from the
+  baseline toward the target.
+- Each week can be **marked as a completed check-in**. A running count shows how
+  many weeks you have checked in, and the selected week shows whether it is
+  done.
+
 ## Data and privacy
 
 All state is stored under a single versioned key, `metrics-elo-v1`, in
 `localStorage`. The shape is:
 
-- `metrics`: array of `{ id, name, order }`
+- `metrics`: array of `{ id, name, order, baseline, target }`
 - `weeks`: object keyed by ISO week string (for example `2026-W26`) mapping
   `metricId` to an integer delta for that week
-- `settings`: `{ theme: "light" | "dark" | "system" }`
+- `checkins`: object keyed by ISO week string, set to `true` for each week
+  marked as a completed check-in
+- `settings`: `{ theme: "light" | "dark" | "system", name: string }`
 
 Storage is parsed defensively. If the saved data is missing or corrupt, the app
 falls back to the seeded defaults instead of crashing. State is persisted on
