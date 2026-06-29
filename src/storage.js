@@ -35,6 +35,21 @@ export function scoreForValue(value) {
   return SCORES.find((s) => s.value === value) || null
 }
 
+// Tangible starting levels for a metric's baseline. Picking one of these is a
+// friendlier way to set "who you were before" than typing a raw rating. The
+// values are spaced so the default sits at the base rating.
+export const START_LEVELS = [
+  { key: 'starting', label: 'Just starting', value: BASE_RATING - 100 },
+  { key: 'building', label: 'Building', value: BASE_RATING },
+  { key: 'solid', label: 'Solid', value: BASE_RATING + 100 },
+  { key: 'strong', label: 'Strong', value: BASE_RATING + 200 },
+]
+
+// Find the named starting level that matches a baseline value, if any.
+export function levelForValue(value) {
+  return START_LEVELS.find((l) => l.value === value) || null
+}
+
 export function seededState() {
   return {
     metrics: DEFAULT_METRIC_NAMES.map((name, index) => ({
@@ -133,10 +148,28 @@ export function clearState() {
   }
 }
 
-// Current overall rating for a metric: base plus the sum of every week's
-// adjustment for that metric.
+// Full reset: wipe everything this app stored in the browser. localStorage for
+// this origin only ever holds this app's data, so clearing it leaves a clean
+// slate that reseeds on next load.
+export function clearAll() {
+  try {
+    localStorage.clear()
+  } catch (err) {
+    // Ignore.
+  }
+}
+
+// The starting rating ("who you were before") for a metric. Falls back to the
+// base rating when no baseline is stored.
+export function startRatingFor(state, metricId) {
+  const metric = state.metrics.find((m) => m.id === metricId)
+  return metric && Number.isFinite(metric.baseline) ? metric.baseline : BASE_RATING
+}
+
+// Current overall rating for a metric: its starting rating plus the sum of
+// every week's scored outcome for that metric.
 export function ratingFor(state, metricId) {
-  let total = BASE_RATING
+  let total = startRatingFor(state, metricId)
   for (const week of Object.values(state.weeks)) {
     const delta = week[metricId]
     if (Number.isFinite(delta)) total += delta

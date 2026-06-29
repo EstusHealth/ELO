@@ -25,9 +25,10 @@ export function seriesColor(index) {
 // The earliest visible week already reflects all prior accumulated adjustments
 // so the line is continuous.
 function buildSeries(state, metric, visibleWeeks) {
-  // Sum of all adjustments strictly before the first visible week.
+  // Sum of all adjustments strictly before the first visible week, starting
+  // from this metric's baseline ("who you were before").
   const firstWeek = visibleWeeks[0]
-  let priorTotal = BASE_RATING
+  let priorTotal = Number.isFinite(metric.baseline) ? metric.baseline : BASE_RATING
   for (const [weekKey, entry] of Object.entries(state.weeks)) {
     if (compareWeeks(weekKey, firstWeek) < 0) {
       const d = entry[metric.id]

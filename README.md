@@ -35,9 +35,15 @@ with the person you are becoming.
 - **Your name** is an optional display name shown on the check-in heading. It is
   stored locally and never sent anywhere.
 - Each metric has a **baseline** ("who you were before") and a **target** ("who
-  you are becoming"). Edit both in the "Edit metrics" panel. Each card shows a
-  progress bar marking how far the current rating has travelled from the
-  baseline toward the target.
+  you are becoming"). In the "Edit metrics" panel you set the baseline by
+  picking a tangible starting level (Just starting, Building, Solid, Strong)
+  rather than typing a raw number, and set the target rating directly. The
+  metric's current rating starts from its baseline and accumulates from there.
+  Each card shows a progress bar marking how far the current rating has
+  travelled from the baseline toward the target.
+- To capture history from before you started, use **Score a previous week** in
+  the edit panel. It jumps to the prior week so you can score earlier weeks with
+  the normal outcomes, building a real trend line.
 - Each week can be **marked as a completed check-in**. A running count shows how
   many weeks you have checked in, and the selected week shows whether it is
   done.
@@ -59,7 +65,8 @@ falls back to the seeded defaults instead of crashing. State is persisted on
 every change.
 
 You can export all data to a JSON file and import it back from the edit panel.
-A reset button clears everything behind a confirm dialog.
+A **Reset** button in the header clears all of this app's data from the browser
+behind a confirm dialog, then reloads to the seeded defaults.
 
 **Zero network calls.** The app makes no fetch, XHR, WebSocket, or any other
 network request. Nothing is sent anywhere. The only persistence is

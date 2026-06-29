@@ -2,14 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   loadState,
   saveState,
-  clearState,
-  seededState,
+  clearAll,
   ratingFor,
   progressFor,
   makeId,
   BASE_RATING,
   DEFAULT_TARGET,
   SCORES,
+  START_LEVELS,
 } from './storage.js'
 import {
   currentWeekString,
@@ -96,6 +96,25 @@ export default function App() {
         m.id === id ? { ...m, [field]: value } : m,
       ),
     }))
+  }
+
+  // Set a metric's baseline from a tangible starting level. Keep the target
+  // above the new baseline so the progress bar stays meaningful.
+  function setBaselineLevel(id, value) {
+    setState((prev) => ({
+      ...prev,
+      metrics: prev.metrics.map((m) =>
+        m.id === id
+          ? { ...m, baseline: value, target: m.target > value ? m.target : value + 100 }
+          : m,
+      ),
+    }))
+  }
+
+  // Jump back one week so the user can backfill a previous week's outcomes.
+  function scorePreviousWeek() {
+    setWeek((w) => shiftWeek(w, -1))
+    setEditing(false)
   }
 
   // Flip whether the selected week's check-in is marked complete.
@@ -207,18 +226,18 @@ export default function App() {
     event.target.value = ''
   }
 
-  function resetAll() {
+  // Full reset: clear everything this app stored in the browser, then reload so
+  // the app starts fresh from the seeded defaults.
+  function fullReset() {
     if (
       !window.confirm(
-        'Reset all data? This clears every metric and adjustment from this browser.',
+        'Full reset? This permanently clears all data for this app from this browser and restores the default metrics.',
       )
     ) {
       return
     }
-    clearState()
-    const fresh = seededState()
-    setState(fresh)
-    setWeek(currentWeekString())
+    clearAll()
+    window.location.reload()
   }
 
   const themeLabel = { light: 'Light', dark: 'Dark', system: 'System' }[
@@ -253,6 +272,14 @@ export default function App() {
             aria-label={`Theme: ${themeLabel}. Click to change.`}
           >
             Theme: {themeLabel}
+          </button>
+          <button
+            type="button"
+            className="ghost danger"
+            onClick={fullReset}
+            aria-label="Full reset: clear all data and restore defaults"
+          >
+            Reset
           </button>
         </div>
       </header>
@@ -313,43 +340,24 @@ export default function App() {
           </label>
 
           <p className="editor-hint">
-            Baseline is the rating of who you were before. Target is who you are
-            becoming. Each card shows how far you have travelled between them.
+            Pick a starting level for who you were before, and a target rating
+            for who you are becoming. Each card shows how far you have travelled
+            between them. To set history from before you started, use "Score a
+            previous week" and score earlier weeks with the normal outcomes.
           </p>
 
           <ul className="editor-list">
             {orderedMetrics.map((m, i) => (
               <li key={m.id} className="editor-row">
-                <input
-                  type="text"
-                  className="metric-name-input"
-                  value={m.name}
-                  onChange={(e) => renameMetric(m.id, e.target.value)}
-                  aria-label={`Rename metric ${m.name}`}
-                />
-                <label className="num-field">
-                  <span>Were</span>
+                <div className="editor-row-head">
                   <input
-                    type="number"
-                    value={m.baseline}
-                    onChange={(e) =>
-                      setMetricNumber(m.id, 'baseline', e.target.value)
-                    }
-                    aria-label={`Baseline rating for ${m.name}`}
+                    type="text"
+                    className="metric-name-input"
+                    value={m.name}
+                    onChange={(e) => renameMetric(m.id, e.target.value)}
+                    aria-label={`Rename metric ${m.name}`}
                   />
-                </label>
-                <label className="num-field">
-                  <span>Becoming</span>
-                  <input
-                    type="number"
-                    value={m.target}
-                    onChange={(e) =>
-                      setMetricNumber(m.id, 'target', e.target.value)
-                    }
-                    aria-label={`Target rating for ${m.name}`}
-                  />
-                </label>
-                <div className="editor-row-actions">
+                  <div className="editor-row-actions">
                   <button
                     type="button"
                     className="ghost small"
@@ -376,13 +384,54 @@ export default function App() {
                   >
                     Delete
                   </button>
+                  </div>
+                </div>
+
+                <div className="editor-row-config">
+                  <div className="level-field">
+                    <span className="field-label">Were</span>
+                    <div
+                      className="level-options"
+                      role="group"
+                      aria-label={`Starting level for ${m.name}`}
+                    >
+                      {START_LEVELS.map((lv) => (
+                        <button
+                          key={lv.key}
+                          type="button"
+                          className={`level${m.baseline === lv.value ? ' on' : ''}`}
+                          aria-pressed={m.baseline === lv.value}
+                          onClick={() => setBaselineLevel(m.id, lv.value)}
+                          aria-label={`${lv.label}, rating ${lv.value}`}
+                        >
+                          {lv.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <label className="num-field">
+                    <span>Becoming</span>
+                    <input
+                      type="number"
+                      value={m.target}
+                      onChange={(e) =>
+                        setMetricNumber(m.id, 'target', e.target.value)
+                      }
+                      aria-label={`Target rating for ${m.name}`}
+                    />
+                  </label>
                 </div>
               </li>
             ))}
           </ul>
-          <button type="button" className="ghost" onClick={addMetric}>
-            Add metric
-          </button>
+          <div className="editor-buttons">
+            <button type="button" className="ghost" onClick={addMetric}>
+              Add metric
+            </button>
+            <button type="button" className="ghost" onClick={scorePreviousWeek}>
+              Score a previous week
+            </button>
+          </div>
 
           <div className="data-tools">
             <button type="button" className="ghost" onClick={exportData}>
@@ -403,9 +452,6 @@ export default function App() {
               className="sr-only"
               aria-label="Import data file"
             />
-            <button type="button" className="ghost danger" onClick={resetAll}>
-              Reset all data
-            </button>
           </div>
         </section>
       )}

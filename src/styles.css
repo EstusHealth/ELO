@@ -260,7 +260,24 @@ button:disabled {
 
 .editor-row {
   display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+}
+
+.editor-row-head {
+  display: flex;
   gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.editor-row-config {
+  display: flex;
+  gap: 16px;
   align-items: flex-end;
   flex-wrap: wrap;
 }
@@ -270,9 +287,51 @@ button:disabled {
   padding: 7px 10px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: var(--bg);
+  background: var(--surface);
   color: var(--text);
   font: inherit;
+}
+
+.level-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-label {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.level-options {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.level {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
+.level:hover {
+  border-color: var(--accent);
+}
+
+.level.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.editor-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .num-field {
@@ -288,7 +347,7 @@ button:disabled {
   padding: 6px 8px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: var(--bg);
+  background: var(--surface);
   color: var(--text);
   font: inherit;
 }
